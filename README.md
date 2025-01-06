@@ -18,6 +18,14 @@ The script can be run as a tool using [`uvx`](https://docs.astral.sh/uv/guides/t
 
     uvx --from git+https://github.com/bartdorlandt/convert_poetry2uv convert-poetry2uv --help
 
+## uv instructions
+Once the pyproject.toml is converted, you can use `uv` to manage your project. To start fresh, the .venv directory is removed followed by the creation and sync of the .venv directory.
+
+    rm -rf .venv
+    uv venv   # or 'uv venv -p 3.12' to specify a python version
+    uv sync
+
+With this you are good to go and are able to validate the migration was a success.
 
 ## Pypi
 The script is also available on pypi as [convert-poetry2uv](https://pypi.org/project/convert-poetry2uv/)
