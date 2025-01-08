@@ -2,6 +2,8 @@
 
 The convert_poetry2uv.py script is meant to easily convert the pyproject.toml to be consumed by `uv` instead of `poetry`.
 
+> It is specifically meant for the poetry syntax prior to version 2.0. The 2.0 release is compliant to the [PEP 621](https://peps.python.org/pep-0621/) specification. The script will not work for the 2.0 release!
+
 It has a dry-run flag, to have a temporary file to validate the output. When not running the dry-run the original file is saved with a .org extension.
 
     uv run convert_poetry2uv.py <path to file> [-n]
