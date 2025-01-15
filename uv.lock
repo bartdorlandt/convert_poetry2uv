@@ -12,7 +12,7 @@ wheels = [
 
 [[package]]
 name = "convert-poetry2uv"
-version = "0.1.5"
+version = "0.1.7"
 source = { editable = "." }
 dependencies = [
     { name = "tomlkit" },

@@ -24,15 +24,20 @@ def argparser() -> argparse.Namespace:
 def version_conversion(version: str) -> str:
     gt_tilde_version = re.compile(r"[\^~](\d.*)")
     tilde_with_digits_and_star = re.compile(r"^~([\d\.]+)\.\*")
+    multi_ver_restrictions = re.compile(r"([<>=!]+)[\s,]*([\d\.\*]+),?")
+
     if version == "*":
         return ""
     elif found := tilde_with_digits_and_star.match(version):
         return f">={found[1]}"
     elif found := gt_tilde_version.match(version):
         return f">={found[1]}"
+    elif (found := multi_ver_restrictions.findall(version)) and len(found) > 1:
+        bundle = ["".join(g) for g in found]
+        return ",".join(bundle)
     else:
         print(f"Well, this is an unexpected version\nVersion = {version}\n")
-        raise ValueError
+        print("Skipping this version, add it manually.")
 
 
 def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
@@ -81,7 +86,7 @@ def parse_packages(deps: dict) -> tuple[list[str], dict[str, str], dict[str, str
                 uv_deps_optional[name] = version_conversion(version["version"])
             elif source := version.get("source"):
                 uv_deps_source[name] = source
-                uv_deps.append(f"{name}{version_conversion(version["version"])}")
+                uv_deps.append(f"{name}{version_conversion(version['version'])}")
             continue
 
         uv_deps.append(f"{name}{version_conversion(version)}")
