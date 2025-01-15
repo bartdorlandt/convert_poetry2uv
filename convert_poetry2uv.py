@@ -24,12 +24,18 @@ def argparser() -> argparse.Namespace:
 def version_conversion(version: str) -> str:
     gt_tilde_version = re.compile(r"[\^~](\d.*)")
     tilde_with_digits_and_star = re.compile(r"^~([\d\.]+)\.\*")
+    version_constraints = re.compile(r'^((?:[<>]=?|==)\s*[\d.]+(?:\s+(?:[<>]=?|==)\s*[\d.]+)*)')
+    
     if version == "*":
         return ""
     elif found := tilde_with_digits_and_star.match(version):
         return f">={found[1]}"
     elif found := gt_tilde_version.match(version):
         return f">={found[1]}"
+    elif found := version_constraints.match(version):
+        # Convert space-separated version constraints to comma-separated
+        return version.replace(' < ', ',<').replace(' <= ', ',<=').replace(' > ', ',>').replace(
+            ' >= ', ',>=').replace(' == ', ',==').replace(' ', '')
     else:
         print(f"Well, this is an unexpected version\nVersion = {version}\n")
         raise ValueError
