@@ -67,6 +67,13 @@ def test_authors_maintainers(key, name, email):
                 {"name": "First Last"},
             ],
         ),
+        (
+            ["<email-special.some@domain.nl>", "First, Last"],
+            [
+                {"email": "email-special.some@domain.nl"},
+                {"name": "First, Last"},
+            ],
+        ),
     ],
 )
 def test_multiple_authors(authors, author_string):
