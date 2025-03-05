@@ -42,9 +42,9 @@ def version_conversion(version: str) -> str:
 
 def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
     project = new_toml["project"]
-    user_email = re.compile(r"^([\w ]+) <([\w@.]+)>$")
-    only_email = re.compile(r"^<([\w@.]+)>$")
-    only_user = re.compile(r"^([\w ]+)$")
+    user_email = re.compile(r"^([\w, ]+) <([\-\w@.]+)>$")
+    only_email = re.compile(r"^<([\-\w@.]+)>$")
+    only_user = re.compile(r"^([\w, ]+)$")
 
     for key in ("authors", "maintainers"):
         if authors := project.get(key):
