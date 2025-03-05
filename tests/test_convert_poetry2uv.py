@@ -32,6 +32,7 @@ def test_version_conversion(key, value):
     [
         (["authors", "firstname lastname", "name@domain.nl"]),
         (["authors", "another one", "just@checking.com"]),
+        (["authors", "Some, format", "difficult-address.with-specials@domain.com"]),
         (["maintainers", "firstname lastname", "name@domain.nl"]),
         (["maintainers", "another one", "just@checking.com"]),
     ],
@@ -64,6 +65,13 @@ def test_authors_maintainers(key, name, email):
                 {"name": "First Last", "email": "first@domain2.nl"},
                 {"email": "email@domain.nl"},
                 {"name": "First Last"},
+            ],
+        ),
+        (
+            ["<email-special.some@domain.nl>", "First, Last"],
+            [
+                {"email": "email-special.some@domain.nl"},
+                {"name": "First, Last"},
             ],
         ),
     ],
