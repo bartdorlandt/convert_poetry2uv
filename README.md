@@ -37,6 +37,12 @@ The script is also available on pypi as [convert-poetry2uv](https://pypi.org/pro
 # Contribute
 Though I've tried to make it as complete as possible, it is not guaranteed to work for all cases. Feel free to contribute to the code or create an issue with the toml file that is not converted correctly.
 
+## Versioning
+
+The versioning is done using [bump2version](https://pypi.org/project/bump2version/). The version is updated in the `pyproject.toml` file. The configuration is part of the repository. Once the change is committed, the version can be updated using the following command:
+
+    uv run bump2version patch
+
 # Links
 * [Writing pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/)
 * [uv pyproject.toml](https://docs.astral.sh/uv/concepts/projects/layout/)
