@@ -1,6 +1,6 @@
 [project]
 name = "convert-poetry2uv"
-version = "0.1.9"
+version = "0.1.10"
 description = "Poetry to uv tool. To migrate from a poetry managed repo to uv."
 authors = [{ "name" = "Bart", "email" = "bart@bamweb.nl" }]
 readme = "README.md"
