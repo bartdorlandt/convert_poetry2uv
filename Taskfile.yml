@@ -1,7 +1,10 @@
 version: "3"
 
 tasks:
-  default: task -a --sort none
+  default:
+    cmd: task -l --sort none
+    silent: true
+
   test:
     desc: "Run tests"
     cmds:
@@ -25,3 +28,15 @@ tasks:
     cmds:
       - uv run python convert_poetry2uv.py tests/files/poetry_pyproject.toml -n
       - mv tests/files/pyproject_temp_uv.toml tests/files/uv_pyproject.toml
+
+  bump:patch:
+    desc: "Update the patch version and tag"
+    cmds:
+      - uv sync
+      - uv run bumpversion patch
+
+  bump:minor:
+    desc: "Update the minor version and tag"
+    cmds:
+      - uv sync
+      - uv run bumpversion minor
