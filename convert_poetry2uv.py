@@ -32,7 +32,7 @@ def version_conversion(version: str) -> str:
         return f">={found[1]}"
     elif found := gt_tilde_version.match(version):
         return f">={found[1]}"
-    elif (found := multi_ver_restrictions.findall(version)) and len(found) > 1:
+    elif (found := multi_ver_restrictions.findall(version)) and len(found) >= 1:
         bundle = ["".join(g) for g in found]
         return ",".join(bundle)
     else:
