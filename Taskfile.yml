@@ -34,13 +34,13 @@ tasks:
     cmds:
       - uv run bumpversion patch
       - uv sync
-      - git commit -a uv.lock -m "Updated uv.lock"
-      - git tag -a $(bump2version --verbose | grep "current_version ="" | cut -d' = ' -f2)
+      - git commit uv.lock -m "Updated uv.lock"
+      - git tag -a $(cat .bumpversion.cfg | grep "current_version = " | awk '{print $3}') -m ""
 
   bump:minor:
     desc: "Update the minor version and tag"
     cmds:
       - uv run bumpversion minor
       - uv sync
-      - git commit -a uv.lock -m "Updated uv.lock"
-      - git tag -a $(bump2version --verbose | grep "current_version ="" | cut -d' = ' -f2)
+      - git commit uv.lock -m "Updated uv.lock"
+      - git tag -a $(cat .bumpversion.cfg | grep "current_version = " | awk '{print $3}') -m ""
