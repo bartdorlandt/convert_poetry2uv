@@ -41,6 +41,7 @@ def version_conversion(version: str) -> str:
     else:
         print(f"Well, this is an unexpected version\nVersion = {version}\n")
         print("Skipping this version, add it manually.")
+    return ""
 
 
 def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
