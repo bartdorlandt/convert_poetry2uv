@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 import argparse
 import re
+import sys
 from pathlib import Path
 
 import tomlkit as tk
+
+POETRYV2 = False
 
 
 def argparser() -> argparse.Namespace:
@@ -47,6 +50,9 @@ def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
     )
     only_email = re.compile(r"^<([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)>$")
     only_user = re.compile(r"^([\w, ]+)$")
+
+    if POETRYV2:
+        return
 
     for key in ("authors", "maintainers"):
         if authors := project.get(key):
@@ -161,6 +167,8 @@ def tools(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
             if tool == "poetry":
                 continue
             new_toml["tool"][tool] = data
+    if "tool" in new_toml and not new_toml["tool"]:
+        del new_toml["tool"]
 
 
 def poetry_plugins(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
@@ -174,57 +182,72 @@ def poetry_plugins(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None
 
 def build_system(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
     if build := org_toml.get("build-system"):
-        new_toml["build-system"] = org_toml["build-system"]
         if "poetry" in build.get("build-backend"):
-            print("Poetry build system detected. Replaced with hatchling")
-            new_toml["build-system"]["requires"] = ["hatchling"]
-            new_toml["build-system"]["build-backend"] = "hatchling.build"
+            print("Poetry build system detected. It will be removed.")
+        else:
+            new_toml["build-system"] = org_toml["build-system"]
+
+
+def is_poetry_v2(org_toml: tk.TOMLDocument) -> bool:
+    global POETRYV2
+    # Poetry v2 has a [project] section
+    if org_toml.get("project", {}).get("name"):
+        POETRYV2 = True
+        return True
+    # Poetry v1 has a [tool.poetry] section
+    elif org_toml.get("tool", {}).get("poetry").get("name"):
+        POETRYV2 = False
+        return False
+    else:
+        print(
+            "Poetry version not found. Name field not found in tool.poetry or project section"
+        )
+        sys.exit(1)
 
 
 def project_base(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
+    project_base = org_toml["project"] if POETRYV2 else org_toml["tool"]["poetry"]
+
     project = new_toml["project"]
 
-    project.add("name", org_toml["tool"]["poetry"]["name"])
-    project.add("version", org_toml["tool"]["poetry"]["version"])
-    if description := org_toml["tool"]["poetry"].get("description"):
+    project.add("name", project_base["name"])
+    project.add("version", project_base["version"])
+    if description := project_base.get("description"):
         project.add("description", description)
-    if authors := org_toml["tool"]["poetry"].get("authors"):
+    if authors := project_base.get("authors"):
         project.add("authors", authors)
-    if maintainers := org_toml["tool"]["poetry"].get("maintainers"):
+    if maintainers := project_base.get("maintainers"):
         project.add("maintainers", maintainers)
-    if license := org_toml["tool"]["poetry"].get("license"):
+    if license := project_base.get("license"):
         project.add("license", license)
-    if readme := org_toml["tool"]["poetry"].get("readme"):
+    if readme := project_base.get("readme"):
         project.add("readme", readme)
-    if requirespython := org_toml["tool"]["poetry"].get("requires-python"):
+    if requirespython := project_base.get("requires-python"):
         project.add("requires-python", version_conversion(requirespython))
-    elif (
-        requirespython := org_toml["tool"]["poetry"]
-        .get("dependencies", {})
-        .get("python")
-    ):
+    elif requirespython := project_base.get("dependencies", {}).get("python"):
         project.add("requires-python", version_conversion(requirespython))
-    if keywords := org_toml["tool"]["poetry"].get("keywords"):
+    if keywords := project_base.get("keywords"):
         project.add("keywords", keywords)
-    if classifiers := org_toml["tool"]["poetry"].get("classifiers"):
+    if classifiers := project_base.get("classifiers"):
         project.add("classifiers", classifiers)
-    if urls := org_toml["tool"]["poetry"].get("urls"):
+    if urls := project_base.get("urls"):
         project.add("urls", urls)
 
-    if scripts := org_toml["tool"]["poetry"].get("scripts"):
+    if scripts := project_base.get("scripts"):
         project.add("scripts", scripts)
 
-    if dependencies := org_toml["tool"]["poetry"].get("dependencies"):
+    if dependencies := project_base.get("dependencies"):
         project.add("dependencies", dependencies)
 
 
 def project_license(new_toml: tk.TOMLDocument, project_dir: Path) -> None:
     project = new_toml["project"]
     if license := project.get("license"):
-        if project_dir.joinpath(license).exists():
-            project["license"] = tk.inline_table().add("file", license)
-        else:
-            project["license"] = tk.inline_table().add("text", license)
+        if isinstance(license, str):
+            if project_dir.joinpath(license).exists():
+                project["license"] = tk.inline_table().add("file", license)
+            else:
+                project["license"] = tk.inline_table().add("text", license)
 
 
 def poetry_section_specific(
@@ -262,6 +285,8 @@ def main() -> None:
     new_toml = tk.document()
     new_toml["project"] = tk.table()
 
+    global POETRYV2
+    POETRYV2 = is_poetry_v2(org_toml)
     poetry_section_specific(new_toml, org_toml, dir=project_dir)
     build_system(new_toml, org_toml)
     tools(new_toml, org_toml)
