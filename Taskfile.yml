@@ -32,11 +32,15 @@ tasks:
   bump:patch:
     desc: "Update the patch version and tag"
     cmds:
-      - uv sync
       - uv run bumpversion patch
+      - uv sync
+      - git commit -a uv.lock -m "Updated uv.lock"
+      - git tag -a $(bump2version --verbose | grep "current_version ="" | cut -d' = ' -f2)
 
   bump:minor:
     desc: "Update the minor version and tag"
     cmds:
-      - uv sync
       - uv run bumpversion minor
+      - uv sync
+      - git commit -a uv.lock -m "Updated uv.lock"
+      - git tag -a $(bump2version --verbose | grep "current_version ="" | cut -d' = ' -f2)
