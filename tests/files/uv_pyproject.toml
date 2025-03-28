@@ -40,9 +40,6 @@ script_name = "dir.file:app"
 [dependency-groups]
 dev = ["mypy"]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
 
 [tool.mypy]
 python_version = "3.12"

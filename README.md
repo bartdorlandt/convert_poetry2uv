@@ -2,7 +2,7 @@
 
 The convert_poetry2uv.py script is meant to easily convert the pyproject.toml to be consumed by `uv` instead of `poetry`.
 
-> It is specifically meant for the poetry syntax prior to version 2.0. The 2.0 release is compliant to the [PEP 621](https://peps.python.org/pep-0621/) specification. The script will not work for the 2.0 release!
+> Poetry v2 came out after this tool. The tool has been modified to work with poetry v2 format as well. Please create an issue/PR if you find any issues.
 
 It has a dry-run flag, to have a temporary file to validate the output. When not running the dry-run the original file is saved with a .org extension.
 
@@ -12,7 +12,7 @@ You may need to make some manual changes.
 The layout might not be exactly to your liking. I would recommend using [Even better toml](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) in VSCode. Just open the newly generated toml file and save. It will format the file according to the toml specification.
 
 ## Caveats
-* If you were using the poetry build-system, it will be replaced by hatchling.
+* If you were using the poetry build-system, it is removed in the generated pyproject.toml.
 * if you had optional dev groups, the dev group libraries will be used, the optional flag is removed
 
 # Using as a tool

@@ -210,21 +210,38 @@ def test_project_license_file(tmp_path):
     assert in_dict == expected
 
 
-def test_build_system():
-    in_dict = {
-        "build-system": {
-            "requires": ["poetry-core>=1.0.0"],
-            "build-backend": "poetry.core.masonry.api",
-        }
-    }
-    expected = {
-        "build-system": {
-            "requires": ["hatchling"],
-            "build-backend": "hatchling.build",
-        }
-    }
-    convert_poetry2uv.build_system(in_dict, in_dict)
-    assert in_dict == expected
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        [
+            {
+                "build-system": {
+                    "requires": ["poetry-core>=1.0.0"],
+                    "build-backend": "poetry.core.masonry.api",
+                }
+            },
+            {},
+        ],
+        [
+            {
+                "build-system": {
+                    "requires": ["hatchling"],
+                    "build-backend": "hatchling.build",
+                }
+            },
+            {
+                "build-system": {
+                    "requires": ["hatchling"],
+                    "build-backend": "hatchling.build",
+                }
+            },
+        ],
+    ],
+)
+def test_build_system(input, expected):
+    got = {}
+    convert_poetry2uv.build_system(got, input)
+    assert got == expected
 
 
 def test_poetry_sources(pyproject_empty_base):
@@ -279,34 +296,6 @@ def test_normal_and_dev_poetry_sources(pyproject_empty_base):
     assert pyproject_empty_base == expected
 
 
-def test_project_base(toml_obj, pyproject_empty_base):
-    org_toml = toml_obj("tests/files/poetry_pyproject.toml")
-    new_toml = pyproject_empty_base
-    convert_poetry2uv.project_base(new_toml, org_toml)
-    expected = {
-        "project": {
-            "name": "name of the project",
-            "version": "0.1.0",
-            "description": "A description",
-            "authors": ["another <email@domain.nl>", "<some@email.nl>", "user"],
-            "maintainers": ["another <email@domain.nl>", "<some@email.nl>", "user"],
-            "license": "LICENSE",
-            "readme": "README.md",
-            "requires-python": ">=3.12",
-            "scripts": {"script_name": "dir.file:app"},
-            "dependencies": {
-                "python": "^3.12",
-                "pytest": "*",
-                "pytest-cov": "*",
-                "pytest-mock": "*",
-                "ruff": "*",
-                "jira": "^3.8.0",
-            },
-        }
-    }
-    assert new_toml == expected
-
-
 def test_project_base(toml_obj, pyproject_empty_base, expected_project_base):
     org_toml = toml_obj("tests/files/poetry_pyproject.toml")
     new_toml = pyproject_empty_base
@@ -356,7 +345,7 @@ def test_plugins(pyproject_empty_base):
     assert pyproject_empty_base == expected
 
 
-def test_main_dry_run(mocker, tmp_path):
+def test_main_dry_run(mocker, tmp_path, toml_obj):
     src = "tests/files/poetry_pyproject.toml"
     filename = tmp_path.joinpath("pyproject.toml")
     shutil.copy(src, filename)
@@ -365,12 +354,12 @@ def test_main_dry_run(mocker, tmp_path):
         ["convert_poetry2uv.py", str(filename), "-n"],
     )
     convert_poetry2uv.main()
-    should_match = Path("tests/files/uv_pyproject.toml").read_text()
-    generated_toml_txt = filename.parent.joinpath("pyproject_temp_uv.toml").read_text()
-    assert generated_toml_txt == should_match
+    got = toml_obj(filename.parent.joinpath("pyproject_temp_uv.toml"))
+    excepted = toml_obj("tests/files/uv_pyproject.toml")
+    assert got == excepted
 
 
-def test_main(mocker, tmp_path):
+def test_main(mocker, tmp_path, toml_obj):
     src = "tests/files/poetry_pyproject.toml"
     filename = tmp_path.joinpath("pyproject.toml")
     shutil.copy(src, filename)
@@ -379,6 +368,33 @@ def test_main(mocker, tmp_path):
         ["convert_poetry2uv.py", str(filename)],
     )
     convert_poetry2uv.main()
-    should_match = Path("tests/files/uv_pyproject.toml").read_text()
-    generated_toml_txt = filename.read_text()
-    assert generated_toml_txt == should_match
+    got = toml_obj(filename)
+    excepted = toml_obj("tests/files/uv_pyproject.toml")
+    assert got == excepted
+
+
+@pytest.mark.parametrize(
+    "file_path, expected",
+    [
+        ["tests/files/v2_poetry_pyproject.toml", True],
+        ["tests/files/poetry_pyproject.toml", False],
+        ["tests/files/v2_poetry_converted.toml", True],
+    ],
+)
+def test_is_poetry_v2(file_path, expected, toml_obj):
+    org_toml = toml_obj(file_path)
+    assert convert_poetry2uv.is_poetry_v2(org_toml) is expected
+
+
+def test_main_poetry_v2(mocker, tmp_path, toml_obj):
+    src = "tests/files/v2_poetry_pyproject.toml"
+    filename = tmp_path.joinpath("pyproject.toml")
+    shutil.copy(src, filename)
+    mocker.patch(
+        "sys.argv",
+        ["convert_poetry2uv.py", str(filename)],
+    )
+    convert_poetry2uv.main()
+    got = toml_obj(filename)
+    excepted = toml_obj("tests/files/v2_poetry_converted.toml")
+    assert got == excepted
