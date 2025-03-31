@@ -37,11 +37,10 @@ The script is also available on pypi as [convert-poetry2uv](https://pypi.org/pro
 # Contribute
 Though I've tried to make it as complete as possible, it is not guaranteed to work for all cases. Feel free to contribute to the code or create an issue with the toml file that is not converted correctly.
 
-## Versioning
+## Versions/Releases
 
-The versioning is done using [bump2version](https://pypi.org/project/bump2version/). The version is updated in the `pyproject.toml` file. The configuration is part of the repository. Once the change is committed, the version can be updated using the following command:
+The version is automatically updated with `python-semantic-release`. Take note of the `pyproject.toml` to see which keywords can be added to the commit message to ensure the correct version is released. The release is created when merged to main.
 
-    uv run bump2version patch
 
 # Links
 * [Writing pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/)

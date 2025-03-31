@@ -29,30 +29,13 @@ tasks:
       - uv run python convert_poetry2uv.py tests/files/poetry_pyproject.toml -n
       - mv tests/files/pyproject_temp_uv.toml tests/files/uv_pyproject.toml
 
-  bump:patch:
-    desc: "Update the patch version and tag"
+  build:
+    desc: "Build the project"
     cmds:
-      - uv run bumpversion patch
-      - task: bump:sync_and_tag
+      - uv build
 
-  bump:minor:
-    desc: "Update the minor version and tag"
+  clean:
+    desc: "Clean the project"
     cmds:
-      - uv run bumpversion minor
-      - task: bump:sync_and_tag
-
-  bump:sync_and_tag:
-    desc: "Update the version and tag"
-    internal: true
-    cmds:
-      - uv sync
-      - git commit uv.lock -m "Updated uv.lock"
-      - |
-        echo "Type the message you want to add to the tag?"
-        read MESSAGE
-        git tag -a $(cat .bumpversion.cfg | grep "current_version = " | awk '{print $3}') -m "${MESSAGE}"
-
-  push:
-    desc: "Push to git with tags"
-    cmds:
-      - git push --tags
+      - rm -rf convert_poetry2uv.egg-info
+      - rm -rf dist
