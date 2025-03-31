@@ -43,7 +43,7 @@ The version is automatically updated with `python-semantic-release`. Take note o
 
 ## Trusted Publisher
 
-> Note to self: When a new github workflow is required, don't forget to add the new workflow to the trusted publisher list
+> Note to self: When a new github workflow is required, don't forget to add the new workflow to the trusted publisher list.
 
 # Links
 * [Writing pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/)
