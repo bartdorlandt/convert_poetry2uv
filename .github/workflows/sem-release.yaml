@@ -86,6 +86,7 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
           changelog: false
+          force: "patch"
 
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
