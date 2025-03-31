@@ -33,6 +33,7 @@ package = true
 "Changelog" = "https://github.com/bartdorlandt/convert_poetry2uv/blob/main/CHANGELOG.md"
 "Repository" = "https://github.com/bartdorlandt/convert_poetry2uv"
 
+
 [tool.semantic_release]
 assets = []
 build_command_env = []
@@ -44,34 +45,12 @@ allow_zero_version = true
 no_git_verify = false
 tag_format = "{version}"
 version_variables = ["convert_poetry2uv.py:__version__"]
+build_command = "curl -LsSf https://astral.sh/uv/install.sh | sh && source $HOME/.local/bin/env && uv build"
 
 [tool.semantic_release.branches.main]
-match = "(main|versioning)"
+match = "(main)"
 prerelease_token = "rc"
 prerelease = false
-
-# [tool.semantic_release.changelog]
-# exclude_commit_patterns = []
-# mode = "init"
-# insertion_flag = "<!-- version list -->"
-# template_dir = "templates"
-
-# [tool.semantic_release.changelog.default_templates]
-# output_format = "md"
-
-# [tool.semantic_release.changelog.environment]
-# block_start_string = "{%"
-# block_end_string = "%}"
-# variable_start_string = "{{"
-# variable_end_string = "}}"
-# comment_start_string = "{#"
-# comment_end_string = "#}"
-# trim_blocks = false
-# lstrip_blocks = false
-# newline_sequence = "\n"
-# keep_trailing_newline = false
-# extensions = []
-# autoescape = false
 
 [tool.semantic_release.commit_author]
 env = "GIT_COMMIT_AUTHOR"
