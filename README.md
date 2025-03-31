@@ -41,6 +41,9 @@ Though I've tried to make it as complete as possible, it is not guaranteed to wo
 
 The version is automatically updated with `python-semantic-release`. Take note of the `pyproject.toml` to see which keywords can be added to the commit message to ensure the correct version is released. The release is created when merged to main.
 
+## Trusted Publisher
+
+> Note to self: When a new github workflow is required, don't forget to add the new workflow to the trusted publisher list.
 
 # Links
 * [Writing pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/)
