@@ -29,28 +29,44 @@ tasks:
       - uv run python convert_poetry2uv.py tests/files/poetry_pyproject.toml -n
       - mv tests/files/pyproject_temp_uv.toml tests/files/uv_pyproject.toml
 
-  bump:patch:
-    desc: "Update the patch version and tag"
+  build:
+    desc: "Build the project"
     cmds:
-      - uv run bumpversion patch
-      - task: bump:sync_and_tag
+      - uv build
 
-  bump:minor:
-    desc: "Update the minor version and tag"
+  clean_build:
+    desc: "Clean the project"
     cmds:
-      - uv run bumpversion minor
-      - task: bump:sync_and_tag
+      - rm -rf convert_poetry2uv.egg-info
+      - rm -rf dist
 
-  bump:sync_and_tag:
-    desc: "Update the version and tag"
-    internal: true
+  release:
+    desc: "Release the project"
     cmds:
-      - uv sync
-      - git commit uv.lock -m "Updated uv.lock"
-      - |
-        echo "Type the message you want to add to the tag?"
-        read MESSAGE
-        git tag -a $(cat .bumpversion.cfg | grep "current_version = " | awk '{print $3}') -m "${MESSAGE}"
+      - uv run semantic-release version --skip-build --no-vcs-release --no-changelog --no-push --no-commit
+
+  # bump:patch:
+  #   desc: "Update the patch version and tag"
+  #   cmds:
+  #     - uv run bumpversion patch
+  #     - task: bump:sync_and_tag
+
+  # bump:minor:
+  #   desc: "Update the minor version and tag"
+  #   cmds:
+  #     - uv run bumpversion minor
+  #     - task: bump:sync_and_tag
+
+  # bump:sync_and_tag:
+  #   desc: "Update the version and tag"
+  #   internal: true
+  #   cmds:
+  #     - uv sync
+  #     - git commit uv.lock -m "Updated uv.lock"
+  #     - |
+  #       echo "Type the message you want to add to the tag?"
+  #       read MESSAGE
+  #       git tag -a $(cat .bumpversion.cfg | grep "current_version = " | awk '{print $3}') -m "${MESSAGE}"
 
   push:
     desc: "Push to git with tags"
