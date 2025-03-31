@@ -4,7 +4,7 @@ dynamic = ["version"]
 description = "Poetry to uv tool. To migrate from a poetry managed repo to uv."
 authors = [{ "name" = "Bart", "email" = "bart@bamweb.nl" }]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 
 dependencies = ["tomlkit>=0.13.2"]
 
