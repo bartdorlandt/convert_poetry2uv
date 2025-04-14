@@ -52,6 +52,11 @@ match = "(main)"
 prerelease_token = "rc"
 prerelease = false
 
+[tool.semantic_release.branches.other]
+match = "(.*)"
+prerelease_token = "rc"
+prerelease = true
+
 [tool.semantic_release.commit_author]
 env = "GIT_COMMIT_AUTHOR"
 default = "semantic-release <semantic-release>"

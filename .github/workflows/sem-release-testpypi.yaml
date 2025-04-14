@@ -1,25 +1,28 @@
-name: Continuous Delivery
+name: Continuous Delivery TestPyPi
 
 on:
   push:
-    branches:
+    branches-ignore:
+      - main
+  pull_request:
+    branches-ignore:
       - main
 
 jobs:
   release:
-    name: Semantic Release
+    name: Semantic Release on testpypi
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-release-${{ github.ref_name }}
       cancel-in-progress: false
 
     environment:
-      name: pypi
-      url: https://pypi.org/p/convert-poetry2uv
+      name: testpypi
+      url: https://test.pypi.org/p/convert-poetry2uv
 
     permissions:
       id-token: write
-      contents: write
+      # contents: write
 
     steps:
       # Note: We checkout the repository at the branch that triggered the workflow
@@ -86,9 +89,15 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
           changelog: false
+          commit: false
+          push: false
 
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1.12
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          verbose: true
+          skip-existing: true
         if: steps.release.outputs.released == 'true'
 
       - name: Publish | Upload to GitHub Release Assets
@@ -97,3 +106,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
+          root_options: "-vv --noop"
