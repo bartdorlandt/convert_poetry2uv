@@ -10,7 +10,7 @@ on:
 
 jobs:
   release:
-    name: Semantic Release on testpypi
+    name: Semantic Release on Testpypi
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-release-${{ github.ref_name }}
