@@ -7,7 +7,7 @@ from pathlib import Path
 import tomlkit as tk
 
 POETRYV2 = False
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 
 def argparser() -> argparse.Namespace:
