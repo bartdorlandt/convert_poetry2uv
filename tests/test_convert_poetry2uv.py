@@ -31,6 +31,7 @@ def test_version_conversion(key, value):
     "key, name, email",
     [
         (["authors", "firstname lastname", "name@domain.nl"]),
+        (["authors", "first-second last", "email-last@domain-second.nl"]),
         (["authors", "another one", "just@checking.com"]),
         (["authors", "Some, format", "difficult-address.with-specials@domain.com"]),
         (["maintainers", "firstname lastname", "name@domain.nl"]),
