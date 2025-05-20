@@ -39,3 +39,14 @@ tasks:
     cmds:
       - rm -rf convert_poetry2uv.egg-info
       - rm -rf dist
+
+  lint:
+    desc: "Run linters"
+    cmds:
+      - uv run ruff check .
+
+  lint:fix:
+    desc: "Run python formatters"
+    cmds:
+      - uv run ruff check . --fix
+      - uv run ruff format .

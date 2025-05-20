@@ -38,10 +38,44 @@ def test_version_conversion(key, value):
         (["maintainers", "another one", "just@checking.com"]),
     ],
 )
-def test_authors_maintainers(key, name, email):
+def test_authors_maintainers_name_and_email(key: str, name: str, email: str) -> None:
     authors = [f"{name} <{email}>"]
     in_dict = {"project": {key: authors}}
     expected = {"project": {key: [{"name": name, "email": email}]}}
+    convert_poetry2uv.authors_maintainers(in_dict)
+    assert in_dict == expected
+
+
+@pytest.mark.parametrize(
+    "key, name",
+    [
+        (["authors", "firstname lastname"]),
+        (["authors", "Some, format"]),
+        (["maintainers", "firstname lastname"]),
+        (["maintainers", "another, one"]),
+    ],
+)
+def test_authors_maintainers_name_only(key: str, name: str) -> None:
+    authors = [name]
+    in_dict = {"project": {key: authors}}
+    expected = {"project": {key: [{"name": name}]}}
+    convert_poetry2uv.authors_maintainers(in_dict)
+    assert in_dict == expected
+
+
+@pytest.mark.parametrize(
+    "key, email",
+    [
+        (["authors", "name@domain.nl"]),
+        (["authors", "email-last@domain-second.nl"]),
+        (["authors", "difficult-address.with-specials@domain.com"]),
+        (["maintainers", "just@checking.com"]),
+    ],
+)
+def test_authors_maintainers_email(key: str, email: str) -> None:
+    authors = [f"<{email}>"]
+    in_dict = {"project": {key: authors}}
+    expected = {"project": {key: [{"email": email}]}}
     convert_poetry2uv.authors_maintainers(in_dict)
     assert in_dict == expected
 
@@ -77,7 +111,7 @@ def test_authors_maintainers(key, name, email):
         ),
     ],
 )
-def test_multiple_authors(authors, author_string):
+def test_multiple_authors(authors: str, author_string: str) -> None:
     in_dict = {"project": {"authors": authors}}
     expected = {"project": {"authors": author_string}}
     convert_poetry2uv.authors_maintainers(in_dict)
@@ -108,7 +142,7 @@ def test_optional_dependencies(pyproject_empty_base, org_toml_optional):
     assert pyproject_empty_base == expected
 
 
-def test_extras_dependencies():
+def test_extras_dependencies() -> None:
     in_txt = """
     [tool.poetry.dependencies]
     python = "^3.12"
