@@ -18,6 +18,7 @@ dev = [
     "pytest-cov>=6.0.0",
     "pytest-mock>=3.14.0",
     "python-semantic-release>=9.21.0",
+    "ruff>=0.11.10",
 ]
 
 [project.scripts]
@@ -26,6 +27,9 @@ convert_poetry2uv = "convert_poetry2uv:main"
 
 [tool.uv]
 package = true
+
+[[tool.uv.index]]
+url = "https://rt.imperva-services.net//api/pypi/pypi-dev-local/simple/"
 
 [project.urls]
 "Pull Requests" = "https://github.com/bartdorlandt/convert_poetry2uv/pulls"
@@ -77,3 +81,49 @@ allowed_tags = [
 minor_tags = ["feat"]
 patch_tags = ["fix", "perf", "style", "refactor", "chore"]
 default_bump_level = 0
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [
+    ".git",
+    "__pycache__",
+    "dist",
+    "build",
+    ".venv",
+    "test_*",
+    "noxfile.py",
+    "tests",
+]
+
+[tool.ruff.lint]
+extend-ignore = ["D203", "D213", "PLR2004", "PLW0603"]
+extend-select = [
+    # pycodestyle Google style
+    "D",
+    # pycodestyle errors and warnings
+    "E",
+    "W",
+    # mccabe
+    "C90",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # pylint
+    "PL",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    # flake8-bandit
+    "S",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
