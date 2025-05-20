@@ -28,9 +28,6 @@ convert_poetry2uv = "convert_poetry2uv:main"
 [tool.uv]
 package = true
 
-[[tool.uv.index]]
-url = "https://rt.imperva-services.net//api/pypi/pypi-dev-local/simple/"
-
 [project.urls]
 "Pull Requests" = "https://github.com/bartdorlandt/convert_poetry2uv/pulls"
 "Bug Tracker" = "https://github.com/bartdorlandt/convert_poetry2uv/issues"
