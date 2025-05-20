@@ -48,10 +48,10 @@ def version_conversion(version: str) -> str:
 def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
     project = new_toml["project"]
     user_email = re.compile(
-        r"^([\w, ]+) <([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)>$"
+        r"^([\w,\- ]+) <([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)>$"
     )
     only_email = re.compile(r"^<([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)>$")
-    only_user = re.compile(r"^([\w, ]+)$")
+    only_user = re.compile(r"^([\w,\- ]+)$")
 
     if POETRYV2:
         return
