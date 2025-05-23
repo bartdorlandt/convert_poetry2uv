@@ -51,6 +51,7 @@ def test_authors_maintainers_name_and_email(key: str, name: str, email: str) -> 
     [
         (["authors", "firstname lastname"]),
         (["authors", "Some, format"]),
+        (["authors", "wrongFormat<treated-as-name>"]),
         (["maintainers", "firstname lastname"]),
         (["maintainers", "another, one"]),
     ],

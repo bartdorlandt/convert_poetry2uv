@@ -52,9 +52,8 @@ def version_conversion(version: str) -> str:
 def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
     """Parse authors and maintainers."""
     project = new_toml["project"]
-    user_email = re.compile(r"^([\w,\- ]+) <([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)>$")
-    only_email = re.compile(r"^<([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)>$")
-    only_user = re.compile(r"^([\w,\- ]+)$")
+    user_email = re.compile(r"^(.*) <(.*)>$")
+    only_email = re.compile(r"^<(.*)>$")
 
     if POETRYV2:
         return
@@ -63,21 +62,23 @@ def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
         if (authors := project.get(key)) and isinstance(authors, list):
             new_authors = tk.array()
             for author in authors:
-                if found := user_email.match(author):
+                if not isinstance(author, str):
+                    print(f"Expected string in the list of '{key}', got {type(author)}")
+                    continue
+                elif found := user_email.match(author):
                     name, email = found.groups()
                     tb = tk.inline_table().add("name", name).add("email", email)
                     new_authors.add_line(tb)
                 elif found := only_email.match(author):
                     email = found[1]
                     new_authors.add_line(tk.inline_table().add("email", email))
-                elif found := only_user.match(author):
-                    name = found[1]
-                    new_authors.add_line(tk.inline_table().add("name", name))
                 else:
-                    print(f"Unknown author {key} format: {author}")
+                    new_authors.add_line(tk.inline_table().add("name", author))
 
             new_authors.add_line(indent="")
             project[key] = new_authors
+        else:
+            print("")
 
 
 def parse_packages(deps: dict) -> tuple[list[str], dict[str, str], dict[str, str]]:
