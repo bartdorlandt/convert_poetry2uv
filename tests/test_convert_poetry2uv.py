@@ -30,39 +30,51 @@ def test_version_conversion(key, value):
 @pytest.mark.parametrize(
     "key, value, expected",
     [
-        ([
-            "authors",
-            ["firstname lastname <name@domain.nl>"],
-            [{"name": "firstname lastname", "email": "name@domain.nl"}],
-        ]),
-        ([
-            "authors",
-            ["first-second last <email-last@domain-second.nl>"],
-            [{"name": "first-second last", "email": "email-last@domain-second.nl"}],
-        ]),
-        ([
-            "authors",
-            ["another one <just@checking.com>"],
-            [{"name": "another one", "email": "just@checking.com"}],
-        ]),
-        ([
-            "authors",
-            ["Some, format <difficult-address.with-specials@domain.com>"],
-            [{"name": "Some, format", "email": "difficult-address.with-specials@domain.com"}],
-        ]),
-        ([
-            "maintainers",
-            ["firstname lastname <name@domain.nl>"],
-            [{"name": "firstname lastname", "email": "name@domain.nl"}],
-        ]),
-        ([
-            "maintainers",
-            ["another one <just@checking.com>", "double entry <some@email.com>"],
+        (
             [
-                {"name": "another one", "email": "just@checking.com"},
-                {"name": "double entry", "email": "some@email.com"},
-            ],
-        ]),
+                "authors",
+                ["firstname lastname <name@domain.nl>"],
+                [{"name": "firstname lastname", "email": "name@domain.nl"}],
+            ]
+        ),
+        (
+            [
+                "authors",
+                ["first-second last <email-last@domain-second.nl>"],
+                [{"name": "first-second last", "email": "email-last@domain-second.nl"}],
+            ]
+        ),
+        (
+            [
+                "authors",
+                ["another one <just@checking.com>"],
+                [{"name": "another one", "email": "just@checking.com"}],
+            ]
+        ),
+        (
+            [
+                "authors",
+                ["Some, format <difficult-address.with-specials@domain.com>"],
+                [{"name": "Some, format", "email": "difficult-address.with-specials@domain.com"}],
+            ]
+        ),
+        (
+            [
+                "maintainers",
+                ["firstname lastname <name@domain.nl>"],
+                [{"name": "firstname lastname", "email": "name@domain.nl"}],
+            ]
+        ),
+        (
+            [
+                "maintainers",
+                ["another one <just@checking.com>", "double entry <some@email.com>"],
+                [
+                    {"name": "another one", "email": "just@checking.com"},
+                    {"name": "double entry", "email": "some@email.com"},
+                ],
+            ]
+        ),
     ],
 )
 def test_authors_maintainers_name_and_email(
