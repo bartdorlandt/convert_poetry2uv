@@ -48,5 +48,5 @@ tasks:
   lint:fix:
     desc: "Run python formatters"
     cmds:
-      - uv run ruff check . --fix
       - uv run ruff format .
+      - uv run ruff check . --fix

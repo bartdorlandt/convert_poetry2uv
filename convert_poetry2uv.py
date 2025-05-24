@@ -72,11 +72,14 @@ def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
                 elif found := only_email.match(author):
                     email = found[1]
                     new_authors.add_line(tk.inline_table().add("email", email))
-                else:
+                elif author:
                     new_authors.add_line(tk.inline_table().add("name", author))
 
-            new_authors.add_line(indent="")
-            project[key] = new_authors
+            if new_authors:
+                new_authors.add_line(indent="")
+                project[key] = new_authors
+            else:
+                del project[key]
 
 
 def parse_packages(deps: dict) -> tuple[list[str], dict[str, str], dict[str, str]]:
