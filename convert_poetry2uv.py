@@ -77,8 +77,6 @@ def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
 
             new_authors.add_line(indent="")
             project[key] = new_authors
-        else:
-            print("")
 
 
 def parse_packages(deps: dict) -> tuple[list[str], dict[str, str], dict[str, str]]:
