@@ -126,24 +126,32 @@ def test_authors_maintainers_email(key: str, email: str):
 @pytest.mark.parametrize(
     "authors, author_string",
     [
-        ["First Last <first@domain2.nl>", "another <email@domain.nl>"],
-        [
-            {"name": "First Last", "email": "first@domain2.nl"},
-            {"name": "another", "email": "email@domain.nl"},
-        ],
-        ["First Last", "<email@domain.nl>"],
-        [{"name": "First Last"}, {"email": "email@domain.nl"}],
-        ["First Last <first@domain2.nl>", "<email@domain.nl>", "First Last"],
-        [
-            {"name": "First Last", "email": "first@domain2.nl"},
-            {"email": "email@domain.nl"},
-            {"name": "First Last"},
-        ],
-        ["<email-special.some@domain.nl>", "First, Last"],
-        [
-            {"email": "email-special.some@domain.nl"},
-            {"name": "First, Last"},
-        ],
+        (
+            ["First Last <first@domain2.nl>", "another <email@domain.nl>"],
+            [
+                {"name": "First Last", "email": "first@domain2.nl"},
+                {"name": "another", "email": "email@domain.nl"},
+            ],
+        ),
+        (
+            ["First Last", "<email@domain.nl>"],
+            [{"name": "First Last"}, {"email": "email@domain.nl"}],
+        ),
+        (
+            ["First Last <first@domain2.nl>", "<email@domain.nl>", "First Last"],
+            [
+                {"name": "First Last", "email": "first@domain2.nl"},
+                {"email": "email@domain.nl"},
+                {"name": "First Last"},
+            ],
+        ),
+        (
+            ["<email-special.some@domain.nl>", "First, Last"],
+            [
+                {"email": "email-special.some@domain.nl"},
+                {"name": "First, Last"},
+            ],
+        ),
     ],
 )
 def test_multiple_authors(authors: str, author_string: str):
