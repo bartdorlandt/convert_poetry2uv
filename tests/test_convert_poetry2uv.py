@@ -28,37 +28,80 @@ def test_version_conversion(key, value):
 
 
 @pytest.mark.parametrize(
-    "key, name, email",
+    "key, value, expected",
     [
-        (["authors", "firstname lastname", "name@domain.nl"]),
-        (["authors", "first-second last", "email-last@domain-second.nl"]),
-        (["authors", "another one", "just@checking.com"]),
-        (["authors", "Some, format", "difficult-address.with-specials@domain.com"]),
-        (["maintainers", "firstname lastname", "name@domain.nl"]),
-        (["maintainers", "another one", "just@checking.com"]),
+        [
+            "authors",
+            ["firstname lastname <name@domain.nl>"],
+            [{"name": "firstname lastname", "email": "name@domain.nl"}],
+        ],
+        [
+            "authors",
+            ["first-second last <email-last@domain-second.nl>"],
+            [{"name": "first-second last", "email": "email-last@domain-second.nl"}],
+        ],
+        [
+            "authors",
+            ["another one <just@checking.com>"],
+            [{"name": "another one", "email": "just@checking.com"}],
+        ],
+        [
+            "authors",
+            ["Some, format <difficult-address.with-specials@domain.com>"],
+            [{"name": "Some, format", "email": "difficult-address.with-specials@domain.com"}],
+        ],
+        [
+            "maintainers",
+            ["firstname lastname <name@domain.nl>"],
+            [{"name": "firstname lastname", "email": "name@domain.nl"}],
+        ],
+        [
+            "maintainers",
+            ["another one <just@checking.com>", "double entry <some@email.com>"],
+            [
+                {"name": "another one", "email": "just@checking.com"},
+                {"name": "double entry", "email": "some@email.com"},
+            ],
+        ],
     ],
 )
-def test_authors_maintainers_name_and_email(key: str, name: str, email: str) -> None:
-    authors = [f"{name} <{email}>"]
-    in_dict = {"project": {key: authors}}
-    expected = {"project": {key: [{"name": name, "email": email}]}}
+def test_authors_maintainers_name_and_email(
+    key: str, value: list[str], expected: list[dict[str, str]]
+):
+    in_dict = {"project": {key: value}}
+    expected = {"project": {key: expected}}
     convert_poetry2uv.authors_maintainers(in_dict)
     assert in_dict == expected
 
 
 @pytest.mark.parametrize(
-    "key, name",
+    "key, value",
     [
-        (["authors", "firstname lastname"]),
-        (["authors", "Some, format"]),
-        (["maintainers", "firstname lastname"]),
-        (["maintainers", "another, one"]),
+        ["authors", ["firstname lastname"]],
+        ["authors", ["Some, format", "another one"]],
+        ["authors", ["wrongFormat<treated-as-name>"]],
+        ["maintainers", ["firstname lastname", "Second entry "]],
+        ["maintainers", ["another, one"]],
     ],
 )
-def test_authors_maintainers_name_only(key: str, name: str) -> None:
-    authors = [name]
-    in_dict = {"project": {key: authors}}
-    expected = {"project": {key: [{"name": name}]}}
+def test_authors_maintainers_name_only(key: str, value: list[str]):
+    in_dict = {"project": {key: value}}
+    expected = {"project": {key: [{"name": v} for v in value]}}
+    convert_poetry2uv.authors_maintainers(in_dict)
+    assert in_dict == expected
+
+
+@pytest.mark.parametrize(
+    "key, value",
+    [
+        pytest.param("maintainers", [""], id="empty string in list"),
+        pytest.param("authors", ["", ""], id="empty strings in list"),
+    ],
+)
+def test_authors_maintainers_empty_values(key: str, value: list[str]):
+    """Verify that empty strings are removed."""
+    in_dict = {"project": {key: value}}
+    expected = {"project": {}}
     convert_poetry2uv.authors_maintainers(in_dict)
     assert in_dict == expected
 
@@ -66,13 +109,13 @@ def test_authors_maintainers_name_only(key: str, name: str) -> None:
 @pytest.mark.parametrize(
     "key, email",
     [
-        (["authors", "name@domain.nl"]),
-        (["authors", "email-last@domain-second.nl"]),
-        (["authors", "difficult-address.with-specials@domain.com"]),
-        (["maintainers", "just@checking.com"]),
+        ["authors", "name@domain.nl"],
+        ["authors", "email-last@domain-second.nl"],
+        ["authors", "difficult-address.with-specials@domain.com"],
+        ["maintainers", "just@checking.com"],
     ],
 )
-def test_authors_maintainers_email(key: str, email: str) -> None:
+def test_authors_maintainers_email(key: str, email: str):
     authors = [f"<{email}>"]
     in_dict = {"project": {key: authors}}
     expected = {"project": {key: [{"email": email}]}}
@@ -111,7 +154,7 @@ def test_authors_maintainers_email(key: str, email: str) -> None:
         ),
     ],
 )
-def test_multiple_authors(authors: str, author_string: str) -> None:
+def test_multiple_authors(authors: str, author_string: str):
     in_dict = {"project": {"authors": authors}}
     expected = {"project": {"authors": author_string}}
     convert_poetry2uv.authors_maintainers(in_dict)
@@ -142,7 +185,7 @@ def test_optional_dependencies(pyproject_empty_base, org_toml_optional):
     assert pyproject_empty_base == expected
 
 
-def test_extras_dependencies() -> None:
+def test_extras_dependencies():
     in_txt = """
     [tool.poetry.dependencies]
     python = "^3.12"
@@ -337,9 +380,7 @@ def test_project_base(toml_obj, pyproject_empty_base, expected_project_base):
     assert new_toml == expected_project_base
 
 
-def test_project_base_require_python(
-    toml_obj, pyproject_empty_base, expected_project_base
-):
+def test_project_base_require_python(toml_obj, pyproject_empty_base, expected_project_base):
     org_toml = toml_obj("tests/files/poetry_pyproject.toml")
     org_toml["tool"]["poetry"]["requires-python"] = "^3.10"
     expected_project_base["project"]["requires-python"] = ">=3.10"

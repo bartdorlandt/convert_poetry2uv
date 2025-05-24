@@ -82,16 +82,7 @@ default_bump_level = 0
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-extend-exclude = [
-    ".git",
-    "__pycache__",
-    "dist",
-    "build",
-    ".venv",
-    "test_*",
-    "noxfile.py",
-    "tests",
-]
+extend-exclude = [".git", "__pycache__", "dist", "build", ".venv", "noxfile.py"]
 
 [tool.ruff.lint]
 extend-ignore = ["D203", "D213", "PLR2004", "PLW0603"]
@@ -124,3 +115,6 @@ convention = "google"
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["D", "S101"]
