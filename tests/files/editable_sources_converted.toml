@@ -1,0 +1,29 @@
+[project]
+name = "name of the project"
+version = "0.1.0"
+description = "A description"
+authors = [
+    { name = "another", email = "email@domain.nl" },
+    { email = "some@email.nl" },
+    { name = "user" },
+]
+maintainers = [
+    { name = "another", email = "email@domain.nl" },
+    { email = "some@email.nl" },
+    { name = "user" },
+]
+license = { text = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.12"
+keywords = ["packaging", "poetry"]
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = ["ruff", "jira>=3.8.0", "some-plugin"]
+
+[dependency-groups]
+dev = ["mypy"]
+
+[tool.uv.sources]
+some-plugin = { path = "plugins/some_plugin", editable = true }

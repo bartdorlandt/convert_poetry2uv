@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "name of the project"
+version = "0.1.0"
+description = "A description"
+authors = ["another <email@domain.nl>", "<some@email.nl>", "user"]
+maintainers = ["another <email@domain.nl>", "<some@email.nl>", "user"]
+license = "LICENSE"
+readme = "README.md"
+keywords = ["packaging", "poetry"]
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+ruff = "*"
+jira = "^3.8.0"
+some-plugin = { path = "plugins/some_plugin", develop = true }
+
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+mypy = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

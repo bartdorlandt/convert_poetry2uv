@@ -164,7 +164,7 @@ def test_multiple_authors(authors: str, author_string: str):
 def test_no_python_in_deps(org_toml):
     deps = org_toml["tool"]["poetry"]["dependencies"]
     uv_deps = []
-    uv_deps, _, _ = convert_poetry2uv.parse_packages(deps)
+    uv_deps, _, _, _ = convert_poetry2uv.parse_packages(deps)
     assert "python" not in uv_deps
 
 
@@ -201,8 +201,55 @@ def test_extras_dependencies():
         "pandas[performance]>=2.2.1",
         "fastapi[all]>=0.92.0",
     ]
-    uv_deps, _, _ = convert_poetry2uv.parse_packages(deps)
+    uv_deps, _, _, _ = convert_poetry2uv.parse_packages(deps)
     assert uv_deps == expected
+
+
+@pytest.mark.parametrize(
+    "develop_flag",
+    [
+        pytest.param(True, id="develop_true"),
+        pytest.param(False, id="develop_false"),
+    ],
+)
+def test_development_sources_dev(develop_flag: bool):
+    in_txt = f"""
+    [tool.poetry.dependencies]
+    some-plugin = {{path = "plugins/some_plugin", develop = {str(develop_flag).lower()}}}
+    """
+    in_dict = tomlkit.loads(in_txt)
+    deps = in_dict["tool"]["poetry"]["dependencies"]
+    expected = ["some-plugin"]
+    # sources
+    expected_sources = {"some-plugin": {"path": "plugins/some_plugin", "editable": develop_flag}}
+
+    uv_deps, _, _, tool_uv_sources = convert_poetry2uv.parse_packages(deps)
+    assert uv_deps == expected
+    assert tool_uv_sources == expected_sources
+
+
+def test_development_sources_no_dev():
+    in_txt = """
+    [tool.poetry.dependencies]
+    some-plugin = {path = "plugins/some_plugin"}
+    """
+    in_dict = tomlkit.loads(in_txt)
+    deps = in_dict["tool"]["poetry"]["dependencies"]
+    expected = ["some-plugin"]
+    # sources
+    expected_sources = {"some-plugin": {"path": "plugins/some_plugin"}}
+
+    uv_deps, _, _, tool_uv_sources = convert_poetry2uv.parse_packages(deps)
+    assert uv_deps == expected
+    assert tool_uv_sources == expected_sources
+
+
+def test_add_tool_uv_sources(pyproject_empty_base):
+    sources_data = {"package": {"path": "/absolute/path/to/my-package"}}
+    convert_poetry2uv.add_tool_uv_sources(
+        new_toml=pyproject_empty_base, tool_uv_sources_data=sources_data
+    )
+    assert pyproject_empty_base["tool"]["uv"]["sources"] == sources_data
 
 
 def test_dev_dependencies(pyproject_empty_base, org_toml):
@@ -212,6 +259,23 @@ def test_dev_dependencies(pyproject_empty_base, org_toml):
     }
     convert_poetry2uv.group_dependencies(pyproject_empty_base, org_toml)
     assert pyproject_empty_base == expected
+
+
+def test_v2_dependencies(pyproject_empty_base):
+    pyproject_empty_base["project"] = {
+        "dependencies": ["my-package @ file:///absolute/path/to/my-package"],
+    }
+    convert_poetry2uv.v2_dependencies(pyproject_empty_base)
+    expected = """[project]
+dependencies = ["my-package"]
+
+[tool.uv.sources]
+my-package = {path = "/absolute/path/to/my-package"}
+"""
+    expected_tk = tomlkit.loads(expected)
+
+    assert pyproject_empty_base == expected_tk
+    assert pyproject_empty_base.as_string() == expected_tk.as_string()
 
 
 def test_dev_dependencies_optional(pyproject_empty_base):
@@ -430,21 +494,7 @@ def test_main_dry_run(mocker, tmp_path, toml_obj):
     )
     convert_poetry2uv.main()
     got = toml_obj(filename.parent.joinpath("pyproject_temp_uv.toml"))
-    excepted = toml_obj("tests/files/uv_pyproject.toml")
-    assert got == excepted
-
-
-def test_main(mocker, tmp_path, toml_obj):
-    src = "tests/files/poetry_pyproject.toml"
-    filename = tmp_path.joinpath("pyproject.toml")
-    shutil.copy(src, filename)
-    mocker.patch(
-        "sys.argv",
-        ["convert_poetry2uv.py", str(filename)],
-    )
-    convert_poetry2uv.main()
-    got = toml_obj(filename)
-    excepted = toml_obj("tests/files/uv_pyproject.toml")
+    excepted = toml_obj("tests/files/poetry_pyproject_converted.toml")
     assert got == excepted
 
 
@@ -453,7 +503,7 @@ def test_main(mocker, tmp_path, toml_obj):
     [
         ["tests/files/v2_poetry_pyproject.toml", True],
         ["tests/files/poetry_pyproject.toml", False],
-        ["tests/files/v2_poetry_converted.toml", True],
+        ["tests/files/v2_poetry_pyproject_converted.toml", True],
     ],
 )
 def test_is_poetry_v2(file_path, expected, toml_obj):
@@ -461,15 +511,23 @@ def test_is_poetry_v2(file_path, expected, toml_obj):
     assert convert_poetry2uv.is_poetry_v2(org_toml) is expected
 
 
-def test_main_poetry_v2(mocker, tmp_path, toml_obj):
-    src = "tests/files/v2_poetry_pyproject.toml"
+@pytest.mark.parametrize(
+    "in_path, expected_path",
+    [
+        ["tests/files/poetry_pyproject.toml", "tests/files/poetry_pyproject_converted.toml"],
+        ["tests/files/editable_sources.toml", "tests/files/editable_sources_converted.toml"],
+        ["tests/files/v2_poetry_pyproject.toml", "tests/files/v2_poetry_pyproject_converted.toml"],
+        ["tests/files/v2_local_deps.toml", "tests/files/v2_local_deps_converted.toml"],
+    ],
+)
+def test_main_different_files(mocker, tmp_path, toml_obj, in_path, expected_path):
     filename = tmp_path.joinpath("pyproject.toml")
-    shutil.copy(src, filename)
+    shutil.copy(in_path, filename)
     mocker.patch(
         "sys.argv",
         ["convert_poetry2uv.py", str(filename)],
     )
     convert_poetry2uv.main()
     got = toml_obj(filename)
-    excepted = toml_obj("tests/files/v2_poetry_converted.toml")
-    assert got == excepted
+    expected = toml_obj(expected_path)
+    assert got == expected
