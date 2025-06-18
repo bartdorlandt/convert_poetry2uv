@@ -21,6 +21,7 @@ import convert_poetry2uv
         (">= 1.8.4 <3.0.0, != 2.8.*", ">=1.8.4,<3.0.0,!=2.8.*"),
         (">= 1.8.4, <3.0.0, != 2.8.*", ">=1.8.4,<3.0.0,!=2.8.*"),
         (">=12.0.0", ">=12.0.0"),
+        ("2.4.10", "2.4.10"),
     ],
 )
 def test_version_conversion(key, value):
@@ -261,6 +262,22 @@ def test_dev_dependencies(pyproject_empty_base, org_toml):
     assert pyproject_empty_base == expected
 
 
+def test_dev_dependencies_older_format(pyproject_empty_base):
+    in_txt = """[tool.poetry.dev-dependencies]
+bandit = "*"
+black = "*"
+django-debug-toolbar = "*"
+"""
+    in_dict = tomlkit.loads(in_txt)
+
+    expected = {
+        "project": {},
+        "dependency-groups": {"dev": ["bandit", "black", "django-debug-toolbar"]},
+    }
+    convert_poetry2uv.group_dependencies(pyproject_empty_base, in_dict)
+    assert pyproject_empty_base == expected
+
+
 def test_v2_dependencies(pyproject_empty_base):
     pyproject_empty_base["project"] = {
         "dependencies": ["my-package @ file:///absolute/path/to/my-package"],
@@ -494,8 +511,8 @@ def test_main_dry_run(mocker, tmp_path, toml_obj):
     )
     convert_poetry2uv.main()
     got = toml_obj(filename.parent.joinpath("pyproject_temp_uv.toml"))
-    excepted = toml_obj("tests/files/poetry_pyproject_converted.toml")
-    assert got == excepted
+    expected = toml_obj("tests/files/poetry_pyproject_converted.toml")
+    assert got == expected
 
 
 @pytest.mark.parametrize(
