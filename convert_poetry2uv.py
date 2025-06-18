@@ -45,7 +45,7 @@ def version_conversion(version: str) -> str:
         bundle = ["".join(g) for g in found]
         return ",".join(bundle)
     elif found := exact_version.match(version):
-        return found[1]
+        return f"=={found[1]}"
     else:
         print(f"Well, this is an unexpected version\nVersion = {version}\n")
         print("Skipping this version, add it manually.")
