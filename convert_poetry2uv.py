@@ -31,6 +31,7 @@ def argparser() -> argparse.Namespace:
 def version_conversion(version: str) -> str:
     """Convert version to uv format."""
     gt_tilde_version = re.compile(r"[\^~](\d.*)")
+    exact_version = re.compile(r"([\d\.]+)")
     tilde_with_digits_and_star = re.compile(r"^~([\d\.]+)\.\*")
     multi_ver_restrictions = re.compile(r"([<>=!]+)[\s,]*([\d\.\*]+),?")
 
@@ -43,6 +44,8 @@ def version_conversion(version: str) -> str:
     elif (found := multi_ver_restrictions.findall(version)) and len(found) >= 1:
         bundle = ["".join(g) for g in found]
         return ",".join(bundle)
+    elif found := exact_version.match(version):
+        return f"=={found[1]}"
     else:
         print(f"Well, this is an unexpected version\nVersion = {version}\n")
         print("Skipping this version, add it manually.")
@@ -82,43 +85,72 @@ def authors_maintainers(new_toml: tk.TOMLDocument) -> None:
                 del project[key]
 
 
-def parse_packages(deps: dict) -> tuple[list[str], dict[str, str], dict[str, str]]:
+def parse_packages(
+    deps: dict,
+) -> tuple[list[str], dict[str, str], dict[str, str], dict[str, dict]]:
     """Parse packages."""
     uv_deps: list[str] = []
     uv_deps_optional: dict[str, str] = {}
     uv_deps_source: dict[str, str] = {}
-    for name, version in deps.items():
+    tool_uv_sources: dict[str, str] = {}
+    for name, value in deps.items():
         if name == "python":
             continue
 
-        if isinstance(version, dict):
-            if extras := version.get("extras"):
-                v = version["version"]
+        if isinstance(value, dict):
+            if extras := value.get("extras"):
+                v = value["version"]
                 for i in extras:
                     extra = f"[{i}]"
                     uv_deps.append(f"{name}{extra}{version_conversion(v)}")
-            elif version.get("optional"):
-                uv_deps_optional[name] = version_conversion(version["version"])
-            elif source := version.get("source"):
+            elif value.get("optional"):
+                uv_deps_optional[name] = version_conversion(value["version"])
+            elif source := value.get("source"):
                 uv_deps_source[name] = source
-                uv_deps.append(f"{name}{version_conversion(version['version'])}")
+                uv_deps.append(f"{name}{version_conversion(value['version'])}")
+            elif path := value.get("path"):
+                uv_deps.append(name)
+                tool_uv_sources[name] = {"path": path}
+                if "develop" in value:
+                    tool_uv_sources[name]["editable"] = value["develop"]
+
             continue
 
-        uv_deps.append(f"{name}{version_conversion(version)}")
-    return uv_deps, uv_deps_optional, uv_deps_source
+        uv_deps.append(f"{name}{version_conversion(value)}")
+    return (
+        uv_deps,
+        uv_deps_optional,
+        uv_deps_source,
+        tool_uv_sources,
+    )
 
 
 def group_dependencies(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
     """Parse group dependencies."""
-    if not (groups := org_toml["tool"]["poetry"].get("group")):
+    if not (groups := org_toml["tool"]["poetry"].get("group", {})) and not org_toml["tool"][
+        "poetry"
+    ].get("dev-dependencies"):
         return
+
+    new_toml["dependency-groups"] = new_toml.get("dependency-groups", tk.table())
+
+    # Dealing with older dev-dependencies format, without using groups.
+    if "dev-dependencies" in org_toml["tool"]["poetry"]:
+        # I Don't expect the new and old format to be used together, but just in case.
+        if "dev" not in groups:
+            groups["dev"] = {"dependencies": org_toml["tool"]["poetry"]["dev-dependencies"]}
+        elif groups["dev"].get("dependencies"):
+            groups["dev"]["dependencies"].extend(org_toml["tool"]["poetry"]["dev-dependencies"])
+
     for group, data in groups.items():
-        uv_deps, uv_deps_optional, uv_deps_source = parse_packages(data.get("dependencies", {}))
-        new_toml["dependency-groups"] = new_toml.get("dependency-groups", tk.table())
+        uv_deps, uv_deps_optional, uv_deps_source, tool_uv_sources = parse_packages(
+            data.get("dependencies", {})
+        )
         new_toml["dependency-groups"].add(group, uv_deps)
 
         parse_uv_deps_optional(new_toml, org_toml, uv_deps_optional)
         parse_uv_deps_sources(new_toml, org_toml, uv_deps_source)
+        add_tool_uv_sources(new_toml, tool_uv_sources)
 
 
 def dependencies(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
@@ -126,7 +158,7 @@ def dependencies(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
     if not (deps := org_toml["tool"]["poetry"].get("dependencies", {})):
         return
 
-    uv_deps, uv_deps_optional, uv_deps_source = parse_packages(deps)
+    uv_deps, uv_deps_optional, uv_deps_source, tool_uv_sources = parse_packages(deps)
     new_toml["project"]["dependencies"] = tk.array()
     if uv_deps:
         for x in uv_deps:
@@ -135,9 +167,12 @@ def dependencies(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
 
     parse_uv_deps_optional(new_toml, org_toml, uv_deps_optional)
     parse_uv_deps_sources(new_toml, org_toml, uv_deps_source)
+    add_tool_uv_sources(new_toml, tool_uv_sources)
 
 
-def parse_uv_deps_sources(new_toml, org_toml, uv_deps_source) -> None:
+def parse_uv_deps_sources(
+    new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument, uv_deps_source: dict[str, str]
+) -> None:
     """Parse uv dependencies sources."""
     if uv_deps_source:
         if not new_toml.get("tool", {}).get("uv", {}).get("sources"):
@@ -165,6 +200,22 @@ def parse_uv_deps_optional(
             "optional-dependencies", {}
         )
         new_toml["project"]["optional-dependencies"].update(optional_deps)
+
+
+def add_tool_uv_sources(
+    new_toml: tk.TOMLDocument,
+    tool_uv_sources_data: dict[str, str],
+) -> None:
+    """Parse editable dependencies."""
+    if tool_uv_sources_data:
+        new_toml["tool"] = new_toml.get("tool", tk.table(True))
+        new_toml["tool"]["uv"] = new_toml["tool"].get("uv", tk.table())
+        new_toml["tool"]["uv"]["sources"] = new_toml["tool"]["uv"].get("sources", tk.table())
+
+        for name, data in tool_uv_sources_data.items():
+            # Needs to be a inline table, else the dict becomes part of the header!
+            new_toml["tool"]["uv"]["sources"][name] = tk.inline_table()
+            new_toml["tool"]["uv"]["sources"][name].update(data)
 
 
 def tools(new_toml: tk.TOMLDocument, org_toml: tk.TOMLDocument) -> None:
@@ -268,6 +319,20 @@ def poetry_section_specific(
     group_dependencies(new_toml, org_toml)
     dependencies(new_toml, org_toml)
     poetry_plugins(new_toml, org_toml)
+    if POETRYV2:
+        v2_dependencies(new_toml)
+
+
+def v2_dependencies(new_toml: tk.TOMLDocument) -> None:
+    """Modify V2 specific things."""
+    # Dependencies
+    for i, dep in enumerate(new_toml["project"].get("dependencies", [])):
+        if "@" in dep:
+            package, path = dep.split("@", 1)
+            package = package.strip()
+            new_toml["project"]["dependencies"][i] = package
+            full_path = path.strip().replace("file://", "")
+            add_tool_uv_sources(new_toml, {package: {"path": full_path}})
 
 
 def main() -> None:
@@ -278,7 +343,7 @@ def main() -> None:
         print(f"File {project_file} not found")
         return
     org_toml = tk.loads(project_file.read_text())
-    if not org_toml.get("tool", {}).get("poetry"):
+    if "poetry" not in org_toml.get("tool", {}):
         print("Poetry section not found, are you certain this is a poetry project?")
         return
 

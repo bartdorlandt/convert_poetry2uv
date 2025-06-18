@@ -1,0 +1,12 @@
+[project]
+name = "p2"
+version = "0.1.0"
+description = "poetry 2.1.1 test dir"
+authors = [{ name = "Bart Dorlandt", email = "bart@bamweb.nl" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["my-package"]
+
+[tool.uv.sources]
+my-package = { path = "/absolute/path/to/my-package" }

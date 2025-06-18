@@ -1,0 +1,15 @@
+[project]
+name = "p2"
+version = "0.1.0"
+description = "poetry 2.1.1 test dir"
+authors = [{ name = "Bart Dorlandt", email = "bart@bamweb.nl" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["my-package @ file:///absolute/path/to/my-package"]
+
+[tool.poetry]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
