@@ -21,7 +21,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           # Install a specific version of uv.
-          version: "0.6.x"
+          version: "0.8.x"
 
       - name: Install Task
         uses: arduino/setup-task@v2
